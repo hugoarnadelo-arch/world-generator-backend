@@ -3,6 +3,7 @@ import cors from "cors";
 import OpenAI from "openai";
 
 const app = express();
+
 app.use(cors());
 app.use(express.json({ limit: "1mb" }));
 
@@ -11,6 +12,10 @@ app.get("/", (req, res) => res.send("OK"));
 app.post("/api/generate-world", async (req, res) => {
   try {
     const { choices } = req.body;
+
+    if (!process.env.OPENAI_API_KEY) {
+      return res.status(500).json({ error: "Missing OPENAI_API_KEY env var" });
+    }
 
     const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -40,4 +45,19 @@ Que sea realista a nivel escolar: relaciones causa-efecto claras.`;
 
     const payload = JSON.parse(worldJson.choices[0].message.content);
 
-    // 2) Genera image
+    // Devuelve el JSON al frontend
+    return res.json(payload);
+  } catch (err) {
+    console.error("ERROR /api/generate-world:", err);
+    return res.status(500).json({
+      error: "Failed to generate world",
+      details: err?.message ?? String(err),
+    });
+  }
+});
+
+// Render usa PORT. Imprescindible.
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Server running on port ${PORT}`);
+});
