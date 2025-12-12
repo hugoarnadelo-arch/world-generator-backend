@@ -3,7 +3,6 @@ import cors from "cors";
 import OpenAI from "openai";
 
 const app = express();
-
 app.use(cors());
 app.use(express.json({ limit: "1mb" }));
 
@@ -13,13 +12,16 @@ app.post("/api/generate-world", async (req, res) => {
   try {
     const { choices } = req.body;
 
+    if (!choices) {
+      return res.status(400).json({ error: "Missing 'choices' in request body" });
+    }
+
     if (!process.env.OPENAI_API_KEY) {
-      return res.status(500).json({ error: "Missing OPENAI_API_KEY env var" });
+      return res.status(500).json({ error: "Missing OPENAI_API_KEY in environment variables" });
     }
 
     const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-    // 1) Genera descripción estructurada del mundo
     const system = `Eres un generador de "planetas educativos" para 1º ESO.
 Devuelve SOLO JSON válido (sin markdown).
 Debe incluir:
@@ -44,20 +46,13 @@ Que sea realista a nivel escolar: relaciones causa-efecto claras.`;
     });
 
     const payload = JSON.parse(worldJson.choices[0].message.content);
-
-    // Devuelve el JSON al frontend
     return res.json(payload);
   } catch (err) {
-    console.error("ERROR /api/generate-world:", err);
-    return res.status(500).json({
-      error: "Failed to generate world",
-      details: err?.message ?? String(err),
-    });
+    console.error(err);
+    return res.status(500).json({ error: "Server error", details: String(err?.message || err) });
   }
 });
 
-// Render usa PORT. Imprescindible.
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`Server running on port ${PORT}`);
-});
+app.listen(PORT, () => console.log("Server running on port", PORT));
+
