@@ -1,6 +1,7 @@
 {
   "name": "world-generator-backend",
-  "version": "1.0.0",
+  "version": "2.0.0",
+  "private": true,
   "type": "module",
   "main": "server.js",
   "scripts": {
@@ -9,9 +10,10 @@
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^4.19.2",
-    "openai": "^4.0.0"
+    "openai": "^4.60.0"
   },
   "engines": {
     "node": ">=18"
   }
 }
+
