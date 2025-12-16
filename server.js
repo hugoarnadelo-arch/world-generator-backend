@@ -1,6 +1,11 @@
 import express from "express";
 import cors from "cors";
 import OpenAI from "openai";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 
@@ -21,7 +26,6 @@ app.use((err, req, res, next) => {
   next();
 });
 
-app.get("/", (req, res) => res.send("OK"));
 app.get("/health", (req, res) => res.json({ ok: true }));
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -119,5 +123,13 @@ app.post("/api/generate-world", async (req, res) => {
 });
 
 const port = process.env.PORT || 10000;
+const publicDir = path.join(__dirname, "public");
+
+app.use(express.static(publicDir));
+
+app.get("/", (req, res) => {
+  res.sendFile(path.join(publicDir, "index.html"));
+});
+
 app.listen(port, () => console.log("Server running on port", port));
 
