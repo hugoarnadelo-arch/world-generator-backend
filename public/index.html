@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Generador de Planetas y Ecosistemas (1º ESO)</title>
+  <style>
+    :root {
+      --bg: #0b1021;
+      --panel: #12182f;
+      --card: #1b2344;
+      --accent: #6ae0ff;
+      --text: #e8f2ff;
+      --muted: #9fb3d1;
+      --success: #57f287;
+      --warning: #ffcc4d;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: "Inter", system-ui, -apple-system, sans-serif;
+      background: radial-gradient(circle at 20% 20%, rgba(106, 224, 255, 0.12), transparent 25%),
+                  radial-gradient(circle at 80% 0%, rgba(255, 204, 77, 0.12), transparent 20%),
+                  var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    header {
+      padding: 24px;
+      text-align: center;
+      background: linear-gradient(90deg, rgba(106, 224, 255, 0.08), rgba(87, 242, 135, 0.08));
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.9rem;
+    }
+
+    header p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      max-width: 820px;
+      margin-inline: auto;
+    }
+
+    main {
+      max-width: 1200px;
+      margin: 24px auto 48px;
+      padding: 0 16px;
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 16px;
+    }
+
+    @media (max-width: 980px) {
+      main { grid-template-columns: 1fr; }
+    }
+
+    section {
+      background: var(--panel);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+    }
+
+    h2 { margin-top: 0; }
+
+    .grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .grid.two { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+
+    label { display: block; font-weight: 600; margin-bottom: 6px; }
+
+    select, input, textarea {
+      width: 100%;
+      padding: 10px 12px;
+      background: var(--card);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--text);
+      border-radius: 10px;
+      font-size: 0.98rem;
+      outline: none;
+      transition: border 0.2s ease, transform 0.2s ease;
+    }
+
+    select:focus, input:focus, textarea:focus {
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+
+    textarea { min-height: 100px; resize: vertical; }
+
+    .muted { color: var(--muted); font-size: 0.9rem; }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 999px;
+      font-size: 0.9rem;
+      margin: 4px 6px 4px 0;
+    }
+
+    button {
+      background: linear-gradient(135deg, #7de5ff, #57f287);
+      border: none;
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      color: #041124;
+      font-size: 1rem;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      width: fit-content;
+    }
+
+    button:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(0,0,0,0.25); }
+
+    button:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .status {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .badge { padding: 4px 10px; border-radius: 10px; font-weight: 700; }
+    .badge.ok { background: rgba(87, 242, 135, 0.16); color: var(--success); }
+    .badge.warn { background: rgba(255, 204, 77, 0.12); color: var(--warning); }
+    .badge.err { background: rgba(255, 90, 90, 0.12); color: #ff9b9b; }
+
+    pre {
+      background: var(--card);
+      border-radius: 10px;
+      padding: 12px;
+      overflow: auto;
+      border: 1px solid rgba(255,255,255,0.08);
+      color: #d8e8ff;
+      line-height: 1.4;
+    }
+
+    .summary-card {
+      background: var(--card);
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .small-title { margin: 0 0 4px; font-size: 0.95rem; color: var(--muted); }
+    .result-title { margin: 0 0 8px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Diseña un planeta realista y su ecosistema</h1>
+    <p>Secuencia de decisiones guiadas para que tu alumnado de 1º ESO imagine un planeta coherente, 
+      genere condiciones físico-químicas y obtenga prompts de imagen para visualizar el mundo y sus seres vivos.</p>
+  </header>
+
+  <main>
+    <section>
+      <div class="status">
+        <span class="badge ok">1️⃣ Configura el planeta</span>
+        <span class="muted">Cada elección filtra las opciones siguientes.</span>
+      </div>
+
+      <form id="world-form" class="grid">
+        <div class="grid two">
+          <div>
+            <label for="language">Idioma del resultado</label>
+            <select id="language">
+              <option value="es">Español</option>
+              <option value="en">Inglés</option>
+              <option value="ca">Catalán</option>
+              <option value="fr">Francés</option>
+            </select>
+          </div>
+          <div>
+            <label for="world-name">Nombre del planeta (opcional)</label>
+            <input id="world-name" placeholder="Ej. Nereida" />
+          </div>
+        </div>
+
+        <div class="summary-card">
+          <p class="small-title">Orden recomendado</p>
+          <div class="pill">⭐ Estrella →</div>
+          <div class="pill">🛰️ Órbita →</div>
+          <div class="pill">🌡️ Temperatura →</div>
+          <div class="pill">💨 Atmósfera →</div>
+          <div class="pill">🌊 Hidrosfera →</div>
+          <div class="pill">🪨 Litología →</div>
+          <div class="pill">🌍 Gravedad →</div>
+          <div class="pill">☢️ Radiación</div>
+        </div>
+
+        <div class="grid two">
+          <div>
+            <label for="star">Tipo de estrella</label>
+            <select id="star" required>
+              <option value="">Selecciona una estrella</option>
+              <option value="Enana roja">Enana roja (fría, estable)</option>
+              <option value="G2 amarilla">G2 amarilla (similar al Sol)</option>
+              <option value="F blanca">F blanca (más luminosa)</option>
+              <option value="K naranja">K naranja (ligeramente más fría)</option>
+            </select>
+            <p id="star-hint" class="muted"></p>
+          </div>
+          <div>
+            <label for="orbit">Órbita del planeta</label>
+            <select id="orbit" required disabled>
+              <option value="">Elige primero la estrella</option>
+            </select>
+            <p id="orbit-hint" class="muted"></p>
+          </div>
+        </div>
+
+        <div class="grid two">
+          <div>
+            <label for="temperature">Temperatura media</label>
+            <select id="temperature" required disabled>
+              <option value="">Depende de la órbita</option>
+            </select>
+            <p id="temp-hint" class="muted"></p>
+          </div>
+          <div>
+            <label for="atmosphere">Atmósfera</label>
+            <select id="atmosphere" required>
+              <option value="densa y rica en nitrógeno">Densa y rica en nitrógeno</option>
+              <option value="media tipo Tierra">Media tipo Tierra</option>
+              <option value="ligera, con poco oxígeno">Ligera, con poco oxígeno</option>
+              <option value="cargada de CO2 y efecto invernadero">Cargada de CO₂ y efecto invernadero</option>
+            </select>
+            <p class="muted">Influirá en el agua líquida y en la radiación superficial.</p>
+          </div>
+        </div>
+
+        <div class="grid two">
+          <div>
+            <label for="water">Hidrosfera</label>
+            <select id="water" required>
+              <option value="océanos extensos">Océanos extensos</option>
+              <option value="mares y lagos medios">Mares y lagos medios</option>
+              <option value="regiones polares heladas">Regiones polares heladas</option>
+              <option value="agua subterránea o en géiseres">Agua subterránea o en géiseres</option>
+            </select>
+            <p class="muted">Se ajustará según temperatura y presión atmosférica.</p>
+          </div>
+          <div>
+            <label for="geology">Litología y relieve</label>
+            <select id="geology" required>
+              <option value="silicatos rocosos con cordilleras">Silicatos rocosos con cordilleras</option>
+              <option value="planetas oceánicos con islas volcánicas">Planeta oceánico con islas volcánicas</option>
+              <option value="desértico con dunas y cañones">Desértico con dunas y cañones</option>
+              <option value="mundo helado con criovolcanes">Mundo helado con criovolcanes</option>
+            </select>
+            <p class="muted">La litología condiciona nutrientes y hábitats.</p>
+          </div>
+        </div>
+
+        <div class="grid two">
+          <div>
+            <label for="gravity">Gravedad superficial</label>
+            <select id="gravity" required>
+              <option value="baja (0.4 g)">Baja (0.4 g)</option>
+              <option value="media (1 g)">Media (1 g)</option>
+              <option value="alta (1.6 g)">Alta (1.6 g)</option>
+            </select>
+            <p class="muted">Controlará el tamaño de montañas y la altura de la atmósfera.</p>
+          </div>
+          <div>
+            <label for="radiation">Radiación y magnetosfera</label>
+            <select id="radiation" required>
+              <option value="bien protegida por magnetosfera">Bien protegida por magnetosfera</option>
+              <option value="protección irregular, radiación moderada">Protección irregular, radiación moderada</option>
+              <option value="expuesta a llamaradas frecuentes">Expuesta a llamaradas frecuentes</option>
+            </select>
+            <p class="muted">Enseña a tus estudiantes cómo la vida se adapta a la radiación.</p>
+          </div>
+        </div>
+
+        <div>
+          <label for="notes">Notas didácticas (opcional)</label>
+          <textarea id="notes" placeholder="Metas de la actividad, restricciones o ideas clave" ></textarea>
+        </div>
+
+        <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+          <button type="submit" id="generate-btn">Generar mundo y prompts</button>
+          <span id="status" class="muted">Listo para generar.</span>
+        </div>
+      </form>
+    </section>
+
+    <section>
+      <div class="status">
+        <span class="badge ok">2️⃣ Resultado</span>
+        <span class="muted">Incluye prompts listos para IA de imagen.</span>
+      </div>
+      <div id="result" class="summary-card">
+        <p class="muted">Completa el formulario y pulsa «Generar».</p>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const starModel = {
+      "Enana roja": {
+        orbitOptions: [
+          { value: "muy cercana (periodo corto)", hint: "Días cortos, riesgo de bloqueo de marea." },
+          { value: "zona habitable interior", hint: "Temperaturas suaves si hay atmósfera estable." },
+          { value: "zona habitable exterior", hint: "Climas fríos, ideal para hielo y océanos subterráneos." }
+        ],
+        radiation: "Baja a moderada, salvo llamaradas esporádicas.",
+        hint: "Estrella estable y fría: periodos cortos, posible bloqueo por marea."
+      },
+      "G2 amarilla": {
+        orbitOptions: [
+          { value: "cercana y cálida", hint: "Más calor y evaporación de océanos." },
+          { value: "zona habitable", hint: "Equilibrio tipo Tierra." },
+          { value: "ligeramente exterior", hint: "Climas templados con estaciones suaves." }
+        ],
+        radiation: "Similar al Sol, buena para fotosíntesis.",
+        hint: "Equilibrio entre energía y estabilidad: parecido a nuestro Sol."
+      },
+      "F blanca": {
+        orbitOptions: [
+          { value: "zona habitable interior", hint: "Mucha luz y temperaturas altas." },
+          { value: "zona habitable", hint: "Días luminosos, atmósferas densas necesarias." },
+          { value: "zona habitable exterior", hint: "Tonos azulados, mayor radiación UV." }
+        ],
+        radiation: "Alta radiación UV; conviene buena magnetosfera.",
+        hint: "Más luminosa que el Sol; favorece cielos claros y sombras intensas."
+      },
+      "K naranja": {
+        orbitOptions: [
+          { value: "cercana estable", hint: "Órbitas cortas con luz suave." },
+          { value: "zona habitable", hint: "Temperaturas templadas y pocos extremos." },
+          { value: "exterior fresca", hint: "Climas fríos con posibilidad de océanos helados." }
+        ],
+        radiation: "Baja; condiciones suaves para la vida terrestre.",
+        hint: "Algo más fría que el Sol, buena para biomas templados."
+      }
+    };
+
+    const tempSuggestions = {
+      "muy cercana (periodo corto)": "Probable clima cálido; vigila efecto invernadero y evaporación.",
+      "cercana y cálida": "Alta insolación: desiertos, nubes de tormenta y mares interiores.",
+      "zona habitable interior": "Temperaturas templadas a cálidas según atmósfera.",
+      "zona habitable": "Equilibrio térmico; permite océanos y ciclos del agua.",
+      "ligeramente exterior": "Algo más frío, estaciones marcadas.",
+      "zona habitable exterior": "Frío; posibles casquetes extensos o criovulcanismo.",
+      "exterior fresca": "Bajas temperaturas con agua helada y mares subterráneos."
+    };
+
+    const temperatureOptions = {
+      warm: [
+        "cálida (+15ºC a +40ºC)",
+        "templada (+5ºC a +20ºC)",
+        "variable con estaciones"],
+      temperate: [
+        "templada (+5ºC a +20ºC)",
+        "variable con estaciones",
+        "oceánica suave"],
+      cold: [
+        "fría (-60ºC a 0ºC)",
+        "subcero con océanos bajo hielo",
+        "variable con estaciones"]
+    };
+
+    const worldForm = document.getElementById("world-form");
+    const starSelect = document.getElementById("star");
+    const orbitSelect = document.getElementById("orbit");
+    const tempSelect = document.getElementById("temperature");
+    const statusEl = document.getElementById("status");
+    const resultEl = document.getElementById("result");
+    const generateBtn = document.getElementById("generate-btn");
+
+    function setOptions(select, options) {
+      select.innerHTML = "";
+      for (const { value } of options) {
+        const opt = document.createElement("option");
+        opt.value = value;
+        opt.textContent = value;
+        select.appendChild(opt);
+      }
+    }
+
+    function updateOrbitOptions() {
+      const star = starSelect.value;
+      const data = starModel[star];
+      const hint = document.getElementById("star-hint");
+      const orbitHint = document.getElementById("orbit-hint");
+      if (!data) {
+        orbitSelect.disabled = true;
+        tempSelect.disabled = true;
+        hint.textContent = "";
+        orbitHint.textContent = "";
+        return;
+      }
+      setOptions(orbitSelect, data.orbitOptions);
+      orbitSelect.disabled = false;
+      hint.textContent = data.hint;
+      orbitHint.textContent = data.radiation;
+      updateTemperatureOptions();
+    }
+
+    function updateTemperatureOptions() {
+      const orbit = orbitSelect.value;
+      const star = starSelect.value;
+      const tempHint = document.getElementById("temp-hint");
+      if (!orbit || !star) {
+        tempSelect.disabled = true;
+        tempHint.textContent = "";
+        return;
+      }
+
+      const warmList = ["muy cercana (periodo corto)", "cercana y cálida", "zona habitable interior"];
+      const coldList = ["zona habitable exterior", "exterior fresca", "ligeramente exterior"];
+      let preset = temperatureOptions.temperate;
+      if (warmList.includes(orbit)) preset = temperatureOptions.warm;
+      if (coldList.includes(orbit)) preset = temperatureOptions.cold;
+
+      tempSelect.innerHTML = "";
+      preset.forEach(v => {
+        const opt = document.createElement("option");
+        opt.value = v;
+        opt.textContent = v;
+        tempSelect.appendChild(opt);
+      });
+      tempSelect.disabled = false;
+      tempHint.textContent = tempSuggestions[orbit] || "Ajusta la temperatura según atmósfera y agua.";
+    }
+
+    starSelect.addEventListener("change", updateOrbitOptions);
+    orbitSelect.addEventListener("change", updateTemperatureOptions);
+
+    function summarizeChoices(choices) {
+      return `Planeta ${choices.name || "(sin nombre)"}: ${choices.star}, órbita ${choices.orbit}, ` +
+        `temperatura ${choices.temperature}, atmósfera ${choices.atmosphere}, agua ${choices.water}, ` +
+        `litología ${choices.geology}, gravedad ${choices.gravity}, radiación ${choices.radiation}.`;
+    }
+
+    function buildImagePrompts(choices, data) {
+      const baseWorld = data?.worldImagePrompt || `Ilustración digital realista de un planeta ${choices.star} con ` +
+        `${choices.temperature}, atmósfera ${choices.atmosphere}, hidrosfera ${choices.water} y relieve ${choices.geology}. ` +
+        `Colores naturales, perspectiva orbital.`;
+
+      const ecosystem = data?.ecosystemImagePrompt || `Vista panorámica del ecosistema principal: biomas ${data?.ecosystem?.biomes?.join(", ") || "variados"}. ` +
+        `Mostrar especies adaptadas a ${choices.radiation} y ${choices.gravity}.`;
+
+      return { baseWorld, ecosystem };
+    }
+
+    function renderResult(data, choices) {
+      const { worldName, worldSummary, parameters, ecosystem, lifeHints, exampleSpecies } = data;
+      const summary = summarizeChoices(choices);
+      const prompts = buildImagePrompts(choices, data);
+
+      resultEl.innerHTML = `
+        <h3 class="result-title">${worldName || "Planeta generado"}</h3>
+        <p class="muted">${worldSummary || "Resumen generado para tus estudiantes."}</p>
+        <div class="summary-card">
+          <p class="small-title">Síntesis de decisiones</p>
+          <p>${summary}</p>
+        </div>
+
+        <h4>Parámetros</h4>
+        <pre>${JSON.stringify(parameters, null, 2)}</pre>
+
+        <h4>Ecosistema</h4>
+        <pre>${JSON.stringify(ecosystem, null, 2)}</pre>
+
+        <h4>Pistas para diseñar seres vivos</h4>
+        <pre>${JSON.stringify(lifeHints, null, 2)}</pre>
+
+        <h4>Ejemplos de especies</h4>
+        <pre>${JSON.stringify(exampleSpecies, null, 2)}</pre>
+
+        <h4>Prompts listos para IA de imagen</h4>
+        <pre>Planeta: ${prompts.baseWorld}\n\nEcosistema: ${prompts.ecosystem}</pre>
+
+        <p class="muted">Entrega estos prompts a tus estudiantes para que creen imágenes con la herramienta de IA que prefieran.</p>
+      `;
+    }
+
+    async function handleSubmit(event) {
+      event.preventDefault();
+      const choices = {
+        name: document.getElementById("world-name").value.trim(),
+        star: starSelect.value,
+        orbit: orbitSelect.value,
+        temperature: tempSelect.value,
+        atmosphere: document.getElementById("atmosphere").value,
+        water: document.getElementById("water").value,
+        geology: document.getElementById("geology").value,
+        gravity: document.getElementById("gravity").value,
+        radiation: document.getElementById("radiation").value,
+        notes: document.getElementById("notes").value.trim()
+      };
+
+      if (!choices.star || !choices.orbit || !choices.temperature) {
+        alert("Selecciona estrella, órbita y temperatura antes de continuar.");
+        return;
+      }
+
+      statusEl.textContent = "Generando con IA (OpenAI)...";
+      generateBtn.disabled = true;
+
+      try {
+        const resp = await fetch("/api/generate-world", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ choices, options: { language: document.getElementById("language").value } })
+        });
+
+        if (!resp.ok) {
+          const errText = await resp.text();
+          throw new Error(`Error ${resp.status}: ${errText}`);
+        }
+
+        const payload = await resp.json();
+        if (!payload?.data) throw new Error("Respuesta inesperada del servidor");
+
+        renderResult(payload.data, choices);
+        statusEl.textContent = "Listo. Puedes ajustar opciones y regenerar.";
+      } catch (error) {
+        console.error(error);
+        resultEl.innerHTML = `<div class="badge err">${error.message}</div><p class="muted">Revisa la clave OPENAI_API_KEY en el servidor o vuelve a intentarlo.</p>`;
+        statusEl.textContent = "Ocurrió un error.";
+      } finally {
+        generateBtn.disabled = false;
+      }
+    }
+
+    worldForm.addEventListener("submit", handleSubmit);
+  </script>
+</body>
+</html>
